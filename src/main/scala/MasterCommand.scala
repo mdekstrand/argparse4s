@@ -21,39 +21,16 @@
  */
 package net.elehack.argparse4s
 
-import net.sourceforge.argparse4j.ArgumentParsers
-import net.sourceforge.argparse4j.inf.ArgumentParser
-
-/**
- * Base trait for commands. The argparse4s library is built around
- * commands, defined by this trait, which define and access their
- * arguments using the provided OptionSet.
- */
-trait Command
-extends CommandLike
-with OptFlagImplicits
-with OptionType.Implicits {
+trait MasterCommand
+extends Command {
   /**
-   * Create an argument parser for this command.
+   * Get the subcommands for this command, if any. By default, there are
+   * no subcommands.
    */
-  def parser: ArgumentParser = {
-    val parser = ArgumentParsers.newArgumentParser(name)
-    for (desc <- Option(description)) {
-      parser.description(desc)
-    }
-    addArguments(parser)
-    parser
-  }
+  def subcommands: Seq[Subcommand]
 
   /**
-   * Run a command with some arguments. This parses the arguments with the
-   * parser, prepares and [[ExecutionContext]], and invokes the other
-   * `run` method.
+   * Get the subcommand, if one is provided.
    */
-  def run(args: Seq[String]) {
-    val p = parser
-    val ns = p.parseArgs(args.toArray)
-    implicit val exc = ExecutionContext(ns)
-    run()
-  }
+  def subcommand(implicit exc: ExecutionContext): Option[Subcommand] = None
 }

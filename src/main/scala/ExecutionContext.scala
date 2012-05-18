@@ -21,39 +21,14 @@
  */
 package net.elehack.argparse4s
 
-import net.sourceforge.argparse4j.ArgumentParsers
-import net.sourceforge.argparse4j.inf.ArgumentParser
+import net.sourceforge.argparse4j.inf.Namespace
 
 /**
- * Base trait for commands. The argparse4s library is built around
- * commands, defined by this trait, which define and access their
- * arguments using the provided OptionSet.
+ * The execution context for a command execution. This is used to
+ * allow options to resolve their values.
  */
-trait Command
-extends CommandLike
-with OptFlagImplicits
-with OptionType.Implicits {
-  /**
-   * Create an argument parser for this command.
-   */
-  def parser: ArgumentParser = {
-    val parser = ArgumentParsers.newArgumentParser(name)
-    for (desc <- Option(description)) {
-      parser.description(desc)
-    }
-    addArguments(parser)
-    parser
-  }
+class ExecutionContext(val namespace: Namespace)
 
-  /**
-   * Run a command with some arguments. This parses the arguments with the
-   * parser, prepares and [[ExecutionContext]], and invokes the other
-   * `run` method.
-   */
-  def run(args: Seq[String]) {
-    val p = parser
-    val ns = p.parseArgs(args.toArray)
-    implicit val exc = ExecutionContext(ns)
-    run()
-  }
+object ExecutionContext {
+  def apply(ns: Namespace) = new ExecutionContext(ns)
 }

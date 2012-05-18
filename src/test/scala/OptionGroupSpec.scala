@@ -21,39 +21,17 @@
  */
 package net.elehack.argparse4s
 
-import net.sourceforge.argparse4j.ArgumentParsers
-import net.sourceforge.argparse4j.inf.ArgumentParser
+import java.io.File
+import org.scalatest.{FunSpec, GivenWhenThen}
+import org.scalatest.matchers.ShouldMatchers
 
-/**
- * Base trait for commands. The argparse4s library is built around
- * commands, defined by this trait, which define and access their
- * arguments using the provided OptionSet.
- */
-trait Command
-extends CommandLike
-with OptFlagImplicits
-with OptionType.Implicits {
-  /**
-   * Create an argument parser for this command.
-   */
-  def parser: ArgumentParser = {
-    val parser = ArgumentParsers.newArgumentParser(name)
-    for (desc <- Option(description)) {
-      parser.description(desc)
-    }
-    addArguments(parser)
-    parser
-  }
+import net.sourceforge.argparse4j.inf.ArgumentParserException
 
-  /**
-   * Run a command with some arguments. This parses the arguments with the
-   * parser, prepares and [[ExecutionContext]], and invokes the other
-   * `run` method.
-   */
-  def run(args: Seq[String]) {
-    val p = parser
-    val ns = p.parseArgs(args.toArray)
-    implicit val exc = ExecutionContext(ns)
-    run()
-  }
+import util.DynamicVariable
+
+class OptionGroupSpec
+extends FunSpec
+with ShouldMatchers
+with GivenWhenThen {
+  
 }

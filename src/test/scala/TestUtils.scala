@@ -21,39 +21,26 @@
  */
 package net.elehack.argparse4s
 
-import net.sourceforge.argparse4j.ArgumentParsers
-import net.sourceforge.argparse4j.inf.ArgumentParser
+import util.DynamicVariable
 
-/**
- * Base trait for commands. The argparse4s library is built around
- * commands, defined by this trait, which define and access their
- * arguments using the provided OptionSet.
- */
-trait Command
-extends CommandLike
-with OptFlagImplicits
-with OptionType.Implicits {
-  /**
-   * Create an argument parser for this command.
-   */
-  def parser: ArgumentParser = {
-    val parser = ArgumentParsers.newArgumentParser(name)
-    for (desc <- Option(description)) {
-      parser.description(desc)
+object TestUtils {
+  private var ctx = new DynamicVariable[ExecutionContext](null)
+
+  implicit def execContext = ctx.value
+
+  class TestCommand(override val name: String) extends Command {
+    var hasRun = false
+    val proc = new DynamicVariable[() => Unit](() => ())
+    override def run()(implicit exc: ExecutionContext) {
+      hasRun = true
+      ctx.withValue(exc) {
+        proc.value()
+      }
     }
-    addArguments(parser)
-    parser
-  }
-
-  /**
-   * Run a command with some arguments. This parses the arguments with the
-   * parser, prepares and [[ExecutionContext]], and invokes the other
-   * `run` method.
-   */
-  def run(args: Seq[String]) {
-    val p = parser
-    val ns = p.parseArgs(args.toArray)
-    implicit val exc = ExecutionContext(ns)
-    run()
+    def withArgs[U](args: String*)(block: => U) {
+      proc.withValue(() => block) {
+        run(args)
+      }
+    }
   }
 }

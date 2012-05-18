@@ -31,4 +31,7 @@ case class LongOpt(name: String) extends OptFlag {
   override val flag = "--" + name
 }
 
-
+trait OptFlagImplicits {
+  protected implicit def shortOptName(ch: Char): ShortOpt = new ShortOpt(ch)
+  protected implicit def longOptName(str: String): LongOpt = new LongOpt(str)
+}

@@ -28,7 +28,7 @@ import java.io.File
 /**
  * Type class for valid types of options.
  */
-trait OptionType[T] {
+trait OptionType[+T] {
   def isOptional: Boolean = false
   def isMulti: Boolean = false
   def typeSpec: Either[Class[_], ArgumentType[_]]
@@ -38,16 +38,23 @@ trait OptionType[T] {
 
 object OptionType {
   class Default[A](cls: Class[_]) extends OptionType[A] {
+    def this()(implicit mf: Manifest[A]) {
+      this(mf.erasure)
+    }
+
     def typeSpec = Left(cls)
     def convert(obj: AnyRef) = obj.asInstanceOf[A]
   }
   trait FallbackImplicits {
-    implicit def anyOptionType[A](implicit mf: Manifest[A]): OptionType[A] =
-      new Default[A](mf.erasure)
+    // implicit def anyOptionType[A <: AnyRef](implicit mf: Manifest[A]): OptionType[A] =
+    //   new Default[A](mf.erasure)
   }
 
   trait Implicits extends FallbackImplicits {
-    implicit val fileOptionType: OptionType[File] = new Default[File](classOf[File]) {
+    private def default[A <: AnyRef](implicit mf: Manifest[A]) =
+      new Default(mf.erasure)
+
+    implicit val fileOptionType: OptionType[File] = new Default[File] {
       override def defaultMetaVar = Some("FILE")
     }
 
@@ -61,7 +68,7 @@ object OptionType {
       }
     }
 
-    implicit def sequenceOptionType[A: OptionType]:
+    implicit def sequenceOptionType[A : OptionType]:
     OptionType[Seq[A]] = {
       new OptionType[Seq[A]] {
         val otype = implicitly[OptionType[A]]
@@ -84,6 +91,11 @@ object OptionType {
     implicit def chrOptionType = new Default[Char](classOf[java.lang.Character])
     implicit def boolOptionType =
       new Default[Boolean](classOf[java.lang.Boolean])
+
+    implicit def strOptionType = new OptionType[String] {
+      def typeSpec = Left(classOf[String])
+      def convert(obj: AnyRef) = obj.toString
+    }
   }
 
   object Implicits extends Implicits

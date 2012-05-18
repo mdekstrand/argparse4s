@@ -21,68 +21,67 @@
  */
 package net.elehack.argparse4s
 
-import net.sourceforge.argparse4j.ArgumentParsers
-import net.sourceforge.argparse4j.inf.{ArgumentParser, Namespace}
+import net.sourceforge.argparse4j.inf.{Argument, ArgumentParser}
 import net.sourceforge.argparse4j.impl.Arguments
-import util.DynamicVariable
+import OptionType.Implicits._
 
-class OptionSet(val parser: ArgumentParser) {
-  private var currentNamespace: Option[Namespace] = None
+/**
+ * A command argument (flag, argument, option, etc.).
+ */
+abstract class CmdArg[T : OptionType](val name: String) {
+  protected val typ = implicitly[OptionType[T]]
+  /**
+   * Add this argument to an argument parser.
+   */
+  def addTo(parser: ArgumentParser)
 
-  def namespace: Namespace = currentNamespace getOrElse {
-    throw new IllegalStateException(
-      "accessed option outside cmd line invocation")
-  }
-
-  class Opt[T : OptionType](val name: String) {
-    private val optionType = implicitly[OptionType[T]]
-    def get: T = {
-      val ns = namespace
-      optionType.convert(ns.get(name))
-    }
-  }
-
-  def this(name: String) {
-    this(ArgumentParsers.newArgumentParser(name))
-  }
-
-  def this() {
-    this("command")
-  }
-
-  def argument[T : OptionType](name: String): Opt[T] = {
-    val typ = implicitly[OptionType[T]]
-    val arg = parser.addArgument(name)
-    arg.dest(name)
-    if (typ.isMulti) {
-      arg.nargs("*")
-    }
+  /**
+   * Helper method to set an argument's type based on the
+   * option type.
+   */
+  protected def setType(arg: Argument) {
     typ.typeSpec match {
       case Left(t) => arg.`type`(t)
       case Right(t) => arg.`type`(t)
     }
-    new Opt(name)
   }
 
-  def option[T : OptionType](flags: OptFlag*): Opt[T] = {
-    require(flags.length > 0, "not enough arguments")
-    val typ = implicitly[OptionType[T]]
+  /**
+   * Get the argument's value.
+   */
+  def get(implicit exc: ExecutionContext): T = {
+    typ.convert(exc.namespace.get(name))
+  }
+}
+
+class Arg[T: OptionType](name: String)
+extends CmdArg[T](name) {
+  def addTo(parser: ArgumentParser) {
+    val arg = parser.addArgument(name)
+    arg.dest(name)
+    setType(arg)
+    if (typ.isMulti) {
+      arg.nargs("*")
+    }
+  }
+}
+
+class Opt[T: OptionType](flags: Seq[OptFlag])
+extends CmdArg[T](flags.head.flag) {
+  def addTo(parser: ArgumentParser) {
     val arg = parser.addArgument(flags.map(_.flag): _*)
     arg.required(!(typ.isOptional || typ.isMulti))
     arg.dest(flags.head.flag)
     if (typ.isMulti) {
-      arg.action(Arguments.append())
+      arg.action(Arguments.append)
     }
-    typ.typeSpec match {
-      case Left(t) => arg.`type`(t)
-      case Right(t) => arg.`type`(t)
-    }
-    new Opt(flags.head.flag)
+    setType(arg)
   }
+}
 
-  def flag(flags: OptFlag*): Opt[Boolean] = flag(false, flags: _*)
-
-  def flag(dft: Boolean, flags: OptFlag*): Opt[Boolean] = {
+class Flag(dft: Boolean, flags: Seq[OptFlag])
+extends CmdArg[Boolean](flags.head.flag) {
+  def addTo(parser: ArgumentParser) {
     val arg = parser.addArgument(flags.map(_.flag): _*)
     arg.dest(flags.head.flag)
     if (dft) {
@@ -90,19 +89,15 @@ class OptionSet(val parser: ArgumentParser) {
     } else {
       arg.action(Arguments.storeTrue())
     }
-    import OptionType.Implicits._
-    new Opt[Boolean](flags.head.flag)
-  }
-
-  private[argparse4s]
-  def withNamespace[R](ns: Namespace)(block: => R) = {
-    val old = currentNamespace
-    currentNamespace = Some(ns)
-    try {
-      block
-    } finally {
-      currentNamespace = old
-    }
   }
 }
 
+/**
+ * Methods to create different types of options.
+ */
+object Options {
+  def argument[T: OptionType](name: String) = new Arg[T](name)
+  def option[T: OptionType](flags: OptFlag*) = new Opt[T](flags)
+  def flag(flags: OptFlag*) = new Flag(false, flags)
+  def flag(dft: Boolean, flags: OptFlag*) = new Flag(dft, flags)
+}

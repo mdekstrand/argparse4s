@@ -32,26 +32,14 @@ import util.DynamicVariable
 class CommandSpec extends FunSpec
 with ShouldMatchers
 with GivenWhenThen {
-  private class TestCommand(override val name: String) extends Command {
-    var hasRun = false
-    val proc = new DynamicVariable[() => Unit](() => ())
-    override def run() {
-      hasRun = true
-      proc.value()
-    }
-    def withArgs[U](args: String*)(block: => U) {
-      proc.withValue(() => block) {
-        execute(args)
-      }
-    }
-  }
+  import TestUtils._
 
   describe("Command trait") {
     it("should parse no arguments") {
       given("an empty command")
       object command extends TestCommand("no-arg")
       when("the command is executed with no arguments")
-      command.execute(Seq())
+      command.run(Seq())
       then("the command runs")
       command.hasRun should be (true)
     }
@@ -59,16 +47,12 @@ with GivenWhenThen {
     def oneArgCommand = {
       given("a command with a single named argument")
       new TestCommand("one-arg") {
-        val file = options.argument[String]("file")
+        val file = argument[String]("file")
       }
     }
 
     it("should parse a string argument") {
       val cmd = oneArgCommand
-      then("the argument should be unset")
-      evaluating {
-        cmd.file.get
-      } should produce [IllegalStateException]
       when("the arguments are parsed")
       cmd.withArgs("foo") {
         then("the name should be set")
@@ -81,14 +65,14 @@ with GivenWhenThen {
       when("the command is executed with no arguments")
       then("the execution should fail")
       evaluating {
-        cmd.execute(Seq())
+        cmd.run(Seq())
       } should produce [ArgumentParserException]
     }
 
     it("should parse a multi-item argument") {
       given("a command with a Seq argument")
       object cmd extends TestCommand("seq-arg") {
-        val args = options.argument[Seq[String]]("files")
+        val args = argument[Seq[String]]("files")
       }
       when("the command is with multiple arguments")
       cmd.withArgs("foo", "bar") {
@@ -100,7 +84,7 @@ with GivenWhenThen {
     it("should parse a multi-item argument to empty") {
       given("a command with a Seq argument")
       object cmd extends TestCommand("seq-arg") {
-        val args = options.argument[Seq[String]]("files")
+        val args = argument[Seq[String]]("files")
       }
       when("the command is with multiple arguments")
       cmd.withArgs() {
@@ -112,7 +96,7 @@ with GivenWhenThen {
     it("should parse an option") {
       given("a command with a single option")
       object cmd extends TestCommand("opt") {
-        val o = options.option[String]("foo")
+        val o = option[String]("foo")
       }
 
       when("the command is executed with its argument")
@@ -125,7 +109,7 @@ with GivenWhenThen {
     it("should parse an optional option") {
       given("a command with a single option")
       object cmd extends TestCommand("opt") {
-        val o = options.option[Option[String]]("foo")
+        val o = option[Option[String]]("foo")
       }
 
       when("the command is executed with its argument")
@@ -138,7 +122,7 @@ with GivenWhenThen {
     it("should parse an option w/ short name") {
       given("a command with a single option")
       object cmd extends TestCommand("opt") {
-        val o = options.option[String]('f')
+        val o = option[String]('f')
       }
 
       when("the command is executed with its argument")
@@ -151,7 +135,7 @@ with GivenWhenThen {
     it("should parse an int option") {
       given("a command with a single int option")
       object cmd extends TestCommand("int-opt") {
-        val opt = options.option[Int]('n')
+        val opt = option[Int]('n')
       }
 
       when("the command is executed with its argument")
@@ -164,7 +148,7 @@ with GivenWhenThen {
     it("should parse a flag") {
       given("a command with a flag")
       object cmd extends TestCommand("flag") {
-        val f = options.flag('v', "verbose")
+        val f = flag('v', "verbose")
       }
       when("the command is executed with the flag")
       cmd.withArgs("--verbose") {
@@ -176,7 +160,7 @@ with GivenWhenThen {
     it("should parse a negated flag") {
       given("a command with a flag")
       object cmd extends TestCommand("flag") {
-        val f = options.flag(true, 'v', "verbose")
+        val f = flag(true, 'v', "verbose")
       }
       when("the command is executed with the flag")
       cmd.withArgs("-v") {
@@ -186,9 +170,9 @@ with GivenWhenThen {
     }
 
     it("should default a missing flag") {
-      given("a command with a flag")
+      given("a command with flag")
       object cmd extends TestCommand("flag") {
-        val f = options.flag('v', "verbose")
+        val f = flag('v', "verbose")
       }
       when("the command is executed without the flag")
       cmd.withArgs() {
@@ -200,12 +184,12 @@ with GivenWhenThen {
     it("should parse blended options & args") {
       given("a command with some options and arguments")
       object cmd extends TestCommand("multi-opt") {
-        val n = options.option[Int]('n')
-        val outFile = options.option[Option[File]]('o', "out")
-        val dbgFile = options.option[Option[File]]('D', "debug-file")
-        val dryRun = options.flag("dry-run")
-        val verbose = options.flag('v', "verbose")
-        val inFiles = options.argument[Seq[File]]("file")
+        val n = option[Int]('n')
+        val outFile = option[Option[File]]('o', "out")
+        val dbgFile = option[Option[File]]('D', "debug-file")
+        val dryRun = flag("dry-run")
+        val verbose = flag('v', "verbose")
+        val inFiles = argument[Seq[File]]("file")
       }
       when("the command is invoked")
       cmd.withArgs("-o", "/dev/null", "-n", "42", "--dry-run",
