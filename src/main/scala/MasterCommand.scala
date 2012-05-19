@@ -56,6 +56,7 @@ extends Command {
   override def parser = {
     val parser = super.parser
     val sub = parser.addSubparsers
+    sub.metavar("COMMAND")
     configureSubparsers(sub)
     parser
   }
