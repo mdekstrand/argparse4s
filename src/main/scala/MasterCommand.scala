@@ -21,6 +21,11 @@
  */
 package net.elehack.argparse4s
 
+import net.sourceforge.argparse4j.inf.Subparsers
+
+/**
+ * Trait for commands with subcommands.
+ */
 trait MasterCommand
 extends Command {
   /**
@@ -32,5 +37,33 @@ extends Command {
   /**
    * Get the subcommand, if one is provided.
    */
-  def subcommand(implicit exc: ExecutionContext): Option[Subcommand] = None
+  def subcommand(implicit exc: ExecutionContext): Option[Subcommand] = {
+    Option(exc.namespace.get(MasterCommand.subcommandDest)) map {
+      _.asInstanceOf[Subcommand]
+    }
+  }
+
+  /**
+   * Configure the subparsers. The default implementation just adds the
+   * subcommands; override this to e.g. set the help string.
+   */
+  protected def configureSubparsers(sub: Subparsers) {
+    for (sc <- subcommands) {
+      sc.addParser(sub)
+    }
+  }
+
+  override def parser = {
+    val parser = super.parser
+    val sub = parser.addSubparsers
+    configureSubparsers(sub)
+    parser
+  }
+}
+
+object MasterCommand {
+  /**
+   * The destination name for the subcommand to execute.
+   */
+  val subcommandDest = "argparse4j_subcommand"
 }

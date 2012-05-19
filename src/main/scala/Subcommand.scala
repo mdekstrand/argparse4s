@@ -21,6 +21,8 @@
  */
 package net.elehack.argparse4s
 
+import net.sourceforge.argparse4j.inf.{Subparser, Subparsers}
+
 /**
  * Trait for subcommands.
  */
@@ -28,4 +30,18 @@ trait Subcommand
 extends CommandLike
 with OptFlagImplicits
 with OptionType.Implicits {
+  /**
+   * Add this subcommand to the specified subparsers instance.
+   * @return The subparser, so derived overrides can further
+   * customize it.
+   */
+  def addParser(sub: Subparsers): Subparser = {
+    val parser = sub.addParser(name)
+    for (d <- Option(description)) {
+      parser.description(d)
+    }
+    parser.setDefault(MasterCommand.subcommandDest, this)
+    addArguments(parser)
+    parser
+  }
 }

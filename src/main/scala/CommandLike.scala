@@ -65,7 +65,7 @@ trait CommandLike {
   protected def flag(dft: Boolean, flags: OptFlag*) =
     record(Options.flag(dft, flags: _*))
 
-  protected def addArguments(parser: ArgumentParser) {
+  def addArguments(parser: ArgumentParser) {
     optAccum.foreach(_ addTo parser)
   }
 }

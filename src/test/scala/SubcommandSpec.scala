@@ -61,10 +61,10 @@ with GivenWhenThen {
     it("should propagate arguments to the subcommand") {
       given("a subcommand")
       object subcmd extends Subcommand {
-        def name = "foo"
-        def arg = argument[File]("file")
-        def verbose = flag('v', "verbose")
-        def delim = option[Option[String]]('d', "delim")
+        val name = "foo"
+        val arg = argument[File]("file")
+        val verbose = flag('v', "verbose")
+        val delim = option[Option[String]]('d', "delim")
         var ran = false
         def run()(implicit exc: ExecutionContext) {
           arg.get should equal (new File("/dev/null"))
@@ -72,7 +72,7 @@ with GivenWhenThen {
           delim.get should be (Some(":"))
         }
       }
-      and("a command tha uses it")
+      and("a command that uses it")
       object cmd extends TestCommand("test-command") with MasterCommand {
         def subcommands = Seq(subcmd)
       }
@@ -80,7 +80,7 @@ with GivenWhenThen {
       when("the command is run")
       cmd.withArgs("foo", "-d", ":", "/dev/null") {
         then("the subcommand is selected")
-        cmd.subcommand should be (subcmd)
+        cmd.subcommand should be (Some(subcmd))
         and("the arguments are passed correctly")
         subcmd.run()
       }
