@@ -45,14 +45,11 @@ object OptionType {
     def typeSpec = Left(cls)
     def convert(obj: AnyRef) = obj.asInstanceOf[A]
   }
-  trait FallbackImplicits {
-    // implicit def anyOptionType[A <: AnyRef](implicit mf: Manifest[A]): OptionType[A] =
-    //   new Default[A](mf.erasure)
-  }
 
-  trait Implicits extends FallbackImplicits {
-    private def default[A <: AnyRef](implicit mf: Manifest[A]) =
-      new Default(mf.erasure)
+  def default[A <: AnyRef](implicit mf: Manifest[A]) =
+    new Default(mf.erasure)
+
+  trait Implicits {
 
     implicit val fileOptionType: OptionType[File] = new Default[File] {
       override def defaultMetaVar = Some("FILE")
