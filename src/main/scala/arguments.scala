@@ -33,8 +33,12 @@ abstract class CmdArg[T : OptionType](val name: String) {
 
   var hlp: Option[String] = None
  
-  def help = hlp.get
-  def help_=(s: String) = hlp = Some(s)
+  def help: String = hlp.get
+  def help_=(s: String) { hlp = Some(s) }
+  def help(s: String): this.type = {
+    help = s
+    this
+  }
 
   /**
    * Get the argument's value.
@@ -71,12 +75,26 @@ abstract class CmdOption[T: OptionType](name: String)
 extends CmdArg[T](name) {
   var meta: Option[String] = None
 
-  def metavar = meta.get
-  def metavar_=(s: String) = meta = Some(s)
+  def metavar: String = meta.get
+  def metavar_=(s: String) { meta = Some(s) }
+  def metavar(s: String): this.type = {
+    metavar = s
+    this
+  }
+
+  var dft: Option[T] = None
+
+  def default: T = dft.get
+  def default_=(v: T) { dft = Some(v) }
+  def default(v: T): CmdOption[T] = {
+    default = v
+    this
+  }
 
   override def addTo(parser: ArgumentParser) = {
     val arg = super.addTo(parser)
     meta.orElse(typ.defaultMetaVar).foreach(arg.metavar(_))
+    dft.foreach(ArgConfig.setDefault(arg, _))
     arg
   }
 }
@@ -96,7 +114,7 @@ class Opt[T: OptionType](flags: Seq[OptFlag])
 extends CmdOption[T](flags.head.flag) {
   def createArg(parser: ArgumentParser) = {
     val arg = parser.addArgument(flags.map(_.flag): _*)
-    arg.required(!(typ.isOptional || typ.isMulti))
+    arg.required(dft.isEmpty && !(typ.isOptional || typ.isMulti))
     if (typ.isMulti) {
       arg.action(Arguments.append)
     }

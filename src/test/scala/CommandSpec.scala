@@ -205,5 +205,17 @@ with GivenWhenThen {
         cmd.verbose.get should be (false)
       }
     }
+
+    it("should use a default value") {
+      given("a command wth an argument w/ a default value")
+      object cmd extends TestCommand("default-opt") {
+        val n = option[Int]('n').default(10)
+      }
+      when("the command is invoked without arguments")
+      cmd.withArgs() {
+        then("the option should have its default value")
+        cmd.n.get should equal (10)
+      }
+    }
   }
 }

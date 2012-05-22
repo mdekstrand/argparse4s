@@ -51,7 +51,7 @@ trait CommandLike {
   import OptionType.Implicits._
   private var optAccum: Buffer[CmdArg[_]] = new ListBuffer
   
-  private def record[T: OptionType](arg: CmdArg[T]): CmdArg[T] = {
+  private def record[A <: CmdArg[_]](arg: A): A = {
     optAccum += arg
     arg
   }
