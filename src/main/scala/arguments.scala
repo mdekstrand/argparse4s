@@ -30,21 +30,11 @@ import OptionType.Implicits._
  */
 abstract class CmdArg[T : OptionType](val name: String) {
   protected val typ = implicitly[OptionType[T]]
-  /**
-   * Add this argument to an argument parser.
-   */
-  def addTo(parser: ArgumentParser)
 
-  /**
-   * Helper method to set an argument's type based on the
-   * option type.
-   */
-  protected def setType(arg: Argument) {
-    typ.typeSpec match {
-      case Left(t) => arg.`type`(t)
-      case Right(t) => arg.`type`(t)
-    }
-  }
+  var hlp: Option[String] = None
+ 
+  def help = hlp.get
+  def help_=(s: String) = hlp = Some(s)
 
   /**
    * Get the argument's value.
@@ -52,43 +42,78 @@ abstract class CmdArg[T : OptionType](val name: String) {
   def get(implicit exc: ExecutionContext): T = {
     typ.convert(exc.namespace.get(name))
   }
+
+  /**
+   * Override to create argument & do any initial setup.
+   */
+  protected def createArg(parser: ArgumentParser): Argument
+
+  /**
+   * Add this argument to an argument parser. Delegates to
+   * createArg.
+   */
+  def addTo(parser: ArgumentParser): Argument = {
+    val arg = createArg(parser)
+    arg.dest(name)
+    typ.typeSpec match {
+      case Left(t) => arg.`type`(t)
+      case Right(t) => arg.`type`(t)
+    }
+    hlp.foreach(arg.help(_))
+    arg
+  }
+}
+
+/**
+ * A command argument with a value.
+ */
+abstract class CmdOption[T: OptionType](name: String)
+extends CmdArg[T](name) {
+  var meta: Option[String] = None
+
+  def metavar = meta.get
+  def metavar_=(s: String) = meta = Some(s)
+
+  override def addTo(parser: ArgumentParser) = {
+    val arg = super.addTo(parser)
+    meta.orElse(typ.defaultMetaVar).foreach(arg.metavar(_))
+    arg
+  }
 }
 
 class Arg[T: OptionType](name: String)
-extends CmdArg[T](name) {
-  def addTo(parser: ArgumentParser) {
+extends CmdOption[T](name) {
+  def createArg(parser: ArgumentParser) = {
     val arg = parser.addArgument(name)
-    arg.dest(name)
-    setType(arg)
     if (typ.isMulti) {
       arg.nargs("*")
     }
+    arg
   }
 }
 
 class Opt[T: OptionType](flags: Seq[OptFlag])
-extends CmdArg[T](flags.head.flag) {
-  def addTo(parser: ArgumentParser) {
+extends CmdOption[T](flags.head.flag) {
+  def createArg(parser: ArgumentParser) = {
     val arg = parser.addArgument(flags.map(_.flag): _*)
     arg.required(!(typ.isOptional || typ.isMulti))
-    arg.dest(flags.head.flag)
     if (typ.isMulti) {
       arg.action(Arguments.append)
     }
-    setType(arg)
+    arg
   }
 }
 
 class Flag(dft: Boolean, flags: Seq[OptFlag])
 extends CmdArg[Boolean](flags.head.flag) {
-  def addTo(parser: ArgumentParser) {
+  def createArg(parser: ArgumentParser) = {
     val arg = parser.addArgument(flags.map(_.flag): _*)
-    arg.dest(flags.head.flag)
     if (dft) {
       arg.action(Arguments.storeFalse())
     } else {
       arg.action(Arguments.storeTrue())
     }
+    arg
   }
 }
 
