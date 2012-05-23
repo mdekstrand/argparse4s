@@ -17,13 +17,15 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "1.7.2" % "test"
 )
 
-/* from CakeSolutions post */
-publishTo <<= version { v: String =>
+publishTo <<= {
   val nexus = "https://oss.sonatype.org/"
-  if (v.trim.endsWith("SNAPSHOT"))
-    Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+  val Snapshot = "\\s*(.*)-SNAPSHOT\\s*$".r
+  version {
+    case Snapshot(_) =>
+      Some("snapshots" at nexus + "content/repositories/snapshots")
+    case _ =>
+      Some("releases" at nexus + "service/local/staging/deploy/maven2")
+  }
 }
 
 pomExtra := (
