@@ -72,8 +72,10 @@ object OptionType {
         override def isOptional = false
         override def isMulti = true
         def typeSpec = otype.typeSpec
-        def convert(obj: AnyRef) =
-          obj.asInstanceOf[java.util.List[A]].asScala
+        def convert(obj: AnyRef) = obj match {
+          case null => Seq.empty[A]
+          case lst: java.util.List[A] => lst.asScala
+        }
       }
     }
 

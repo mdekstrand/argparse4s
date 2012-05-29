@@ -217,5 +217,17 @@ with GivenWhenThen {
         cmd.n.get should equal (10)
       }
     }
+
+    it("should parse nonexistent repeated opt") {
+      given("a command with a repeatable argument")
+      object cmd extends TestCommand("no-repeat") {
+        val strs = option[Seq[String]]('s')
+      }
+      when("the command is invoked without arguments")
+      cmd.withArgs() {
+        then("the option should be empty")
+        cmd.strs.get should be ('empty)
+      }
+    }
   }
 }
