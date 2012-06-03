@@ -1,6 +1,6 @@
 name := "argparse4s"
 
-organization := "net.elehack"
+organization := "net.elehack.argparse4s"
 
 organizationName := "Michael Ekstrand"
 
