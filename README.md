@@ -54,6 +54,10 @@ An example:
         }
     }
 
+For more details see the [scaladoc][].
+
+[scaladoc]: http://elehack.net/projects/argparse4s/scaladoc/
+
 # Customizing argument types
 
 The `OptionType` typeclass allows you to specify behavior for specific
