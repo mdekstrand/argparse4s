@@ -30,6 +30,8 @@ trait Subcommand
 extends CommandLike
 with OptFlagImplicits
 with OptionType.Implicits {
+  protected val context = ArgContext("subcommand:" + name)
+
   /**
    * Add this subcommand to the specified subparsers instance.
    * @return The subparser, so derived overrides can further

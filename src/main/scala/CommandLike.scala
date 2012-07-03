@@ -39,6 +39,8 @@ trait CommandLike {
    */
   def description: String = null
 
+  protected def context: ArgContext
+
   /**
    * Execute the command. Override this method to define
    * the command's behavior.
@@ -57,13 +59,13 @@ trait CommandLike {
   }
     
   protected def argument[T: OptionType](name: String) =
-    record(Options.argument[T](name))
+    record(Options.argument[T](context, name))
   protected def option[T: OptionType](flags: OptFlag*) =
-    record(Options.option[T](flags: _*))
+    record(Options.option[T](context, flags: _*))
   protected def flag(flags: OptFlag*) =
-      record(Options.flag(flags: _*))
+      record(Options.flag(context, flags: _*))
   protected def flag(dft: Boolean, flags: OptFlag*) =
-    record(Options.flag(dft, flags: _*))
+    record(Options.flag(context, dft, flags: _*))
 
   def addArguments(parser: ArgumentParser) {
     optAccum.foreach(_ addTo parser)

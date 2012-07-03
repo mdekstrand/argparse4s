@@ -33,6 +33,8 @@ trait Command
 extends CommandLike
 with OptFlagImplicits
 with OptionType.Implicits {
+  protected val context = ArgContext("command:" + name)
+
   /**
    * Create an argument parser for this command.
    */

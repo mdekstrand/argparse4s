@@ -25,10 +25,15 @@ import net.sourceforge.argparse4j.inf.{Argument, ArgumentParser}
 import net.sourceforge.argparse4j.impl.Arguments
 import OptionType.Implicits._
 
+case class ArgContext(key: String) {
+  def dest(name: String) = "%s(%s)".format(key, name)
+}
+
 /**
  * A command argument (flag, argument, option, etc.).
  */
-abstract class CmdArg[T : OptionType](val name: String) {
+abstract class CmdArg[T : OptionType](context: ArgContext,
+                                      val name: String) {
   protected val typ = implicitly[OptionType[T]]
 
   var hlp: Option[String] = None
@@ -44,8 +49,13 @@ abstract class CmdArg[T : OptionType](val name: String) {
    * Get the argument's value.
    */
   def get(implicit exc: ExecutionContext): T = {
-    typ.convert(exc.namespace.get(name))
+    typ.convert(exc.namespace.get(key))
   }
+
+  /**
+   * The key under which options are stored in the namespace.
+   */
+  def key = context.dest(name)
 
   /**
    * Override to create argument & do any initial setup.
@@ -58,7 +68,7 @@ abstract class CmdArg[T : OptionType](val name: String) {
    */
   def addTo(parser: ArgumentParser): Argument = {
     val arg = createArg(parser)
-    arg.dest(name)
+    arg.dest(key)
     typ.typeSpec match {
       case Left(t) => arg.`type`(t)
       case Right(t) => arg.`type`(t)
@@ -71,8 +81,8 @@ abstract class CmdArg[T : OptionType](val name: String) {
 /**
  * A command argument with a value.
  */
-abstract class CmdOption[T: OptionType](name: String)
-extends CmdArg[T](name) {
+abstract class CmdOption[T: OptionType](ctx: ArgContext, name: String)
+extends CmdArg[T](ctx, name) {
   var meta: Option[String] = None
 
   def metavar: String = meta.get
@@ -101,8 +111,8 @@ extends CmdArg[T](name) {
   }
 }
 
-class Arg[T: OptionType](name: String)
-extends CmdOption[T](name) {
+class Arg[T: OptionType](ctx: ArgContext, name: String)
+extends CmdOption[T](ctx, name) {
   def createArg(parser: ArgumentParser) = {
     val arg = parser.addArgument(name)
     if (typ.isMulti) {
@@ -112,8 +122,8 @@ extends CmdOption[T](name) {
   }
 }
 
-class Opt[T: OptionType](flags: Seq[OptFlag])
-extends CmdOption[T](flags.head.flag) {
+class Opt[T: OptionType](ctx: ArgContext, flags: Seq[OptFlag])
+extends CmdOption[T](ctx, flags.head.flag) {
   def createArg(parser: ArgumentParser) = {
     val arg = parser.addArgument(flags.map(_.flag): _*)
     arg.required(dft.isEmpty && !(typ.isOptional || typ.isMulti))
@@ -124,8 +134,8 @@ extends CmdOption[T](flags.head.flag) {
   }
 }
 
-class Flag(dft: Boolean, flags: Seq[OptFlag])
-extends CmdArg[Boolean](flags.head.flag) {
+class Flag(ctx: ArgContext, dft: Boolean, flags: Seq[OptFlag])
+extends CmdArg[Boolean](ctx, flags.head.flag) {
   def createArg(parser: ArgumentParser) = {
     val arg = parser.addArgument(flags.map(_.flag): _*)
     if (dft) {
@@ -141,8 +151,8 @@ extends CmdArg[Boolean](flags.head.flag) {
  * Methods to create different types of options.
  */
 object Options {
-  def argument[T: OptionType](name: String) = new Arg[T](name)
-  def option[T: OptionType](flags: OptFlag*) = new Opt[T](flags)
-  def flag(flags: OptFlag*) = new Flag(false, flags)
-  def flag(dft: Boolean, flags: OptFlag*) = new Flag(dft, flags)
+  def argument[T: OptionType](ctx: ArgContext, name: String) = new Arg[T](ctx, name)
+  def option[T: OptionType](ctx: ArgContext, flags: OptFlag*) = new Opt[T](ctx, flags)
+  def flag(ctx: ArgContext, flags: OptFlag*) = new Flag(ctx, false, flags)
+  def flag(ctx: ArgContext, dft: Boolean, flags: OptFlag*) = new Flag(ctx, dft, flags)
 }
