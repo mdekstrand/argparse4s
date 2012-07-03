@@ -82,7 +82,7 @@ extends CmdArg[T](name) {
     this
   }
 
-  var dft: Option[T] = None
+  protected var dft: Option[T] = None
 
   def default: T = dft.get
   def default_=(v: T) { dft = Some(v) }
@@ -94,7 +94,9 @@ extends CmdArg[T](name) {
   override def addTo(parser: ArgumentParser) = {
     val arg = super.addTo(parser)
     meta.orElse(typ.defaultMetaVar).foreach(arg.metavar(_))
-    dft.foreach(ArgConfig.setDefault(arg, _))
+    for (d <- dft) {
+      ArgConfig.setDefault(arg, d)
+    }
     arg
   }
 }
