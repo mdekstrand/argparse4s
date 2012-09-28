@@ -6,6 +6,10 @@ module.
 
 # Using argparse4s
 
+First, add argparse4s to your project dependencies. In SBT:
+
+    libraryDependencies += "net.elehack.argparse4s" %% "argparse4s" % "0.2"
+
 The main entry point for argparse4s is the `Command` trait. To use argparse4s,
 create an object extending `Command` whose `main` method calls `Command`'s
 `run(Array[String])` method. It will then parse the arugments, prepare an
