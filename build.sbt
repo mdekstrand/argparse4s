@@ -4,7 +4,7 @@ organization := "net.elehack.argparse4s"
 
 organizationName := "Michael Ekstrand"
 
-version := "0.3-SNAPSHOT"
+version := "0.2.1-SNAPSHOT"
 
 scalaVersion := "2.9.2"
 
