@@ -1,6 +1,0 @@
-~$
-(^|/)target/
-^\.ensime
-(^|/)local\.sbt$
-^\.idea(_modules)?/
-\.sublime-(project|workspace)$
