@@ -45,7 +45,7 @@ with GivenWhenThen {
           ran = true
         }
       }
-      and("a command tha uses it")
+      and("a command that uses it")
       object cmd extends TestCommand("test-command") with MasterCommand {
         override def subcommands = Seq(subcmd)
       }

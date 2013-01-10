@@ -24,9 +24,9 @@ package net.elehack.argparse4s
 import util.DynamicVariable
 
 object TestUtils {
-  private var ctx = new DynamicVariable[ExecutionContext](null)
+  private val ctx = new DynamicVariable[ExecutionContext](null)
 
-  implicit def execContext = ctx.value
+  implicit def exc = ctx.value
 
   class TestCommand(override val name: String) extends Command {
     var hasRun = false
