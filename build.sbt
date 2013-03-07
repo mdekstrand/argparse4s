@@ -8,7 +8,9 @@ version := "0.2.2-SNAPSHOT"
 
 scalaVersion := "2.9.2"
 
-crossScalaVersions := Seq("2.10.0", "2.9.2", "2.9.1", "2.9.1-1", "2.9.0-1")
+crossScalaVersions := Seq("2.10.0")
+
+crossScalaVersions ++= Seq("2.9.3", "2.9.2", "2.9.1", "2.9.1-1", "2.9.0-1")
 
 compileOrder := CompileOrder.JavaThenScala
 
@@ -16,10 +18,7 @@ javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
 
 libraryDependencies += "net.sourceforge.argparse4j" % "argparse4j" % "0.2.2"
 
-libraryDependencies <+= scalaVersion({
-  case "2.10.0" => "org.scalatest" %% "scalatest" % "1.9" % "test"
-  case v => "org.scalatest" %% "scalatest" % "1.8" % "test"
-})
+libraryDependencies += "org.scalatest" %% "scalatest" % "1.9.1" % "test"
 
 publishTo <<= {
   val nexus = "https://oss.sonatype.org/"
