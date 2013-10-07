@@ -1,5 +1,10 @@
 language: scala
 scala:
-  - 2.9.2
-  - 2.9.3
-  - 2.10.2
+- 2.9.2
+- 2.9.3
+- 2.10.2
+build: sbt publish
+env:
+  global:
+  - secure: KCIsd32FnnDq8Hm9QDpL3FxYPT45orxIdHsa1VOoKvfrT/6d/cxRdsmy1+fOs67I10tcKElCP2d5porhxxE53Rw/7TYPi1veNqWvufmBYc5dNu2B1jpCAt23gBO/H3z3EkDpyqRqzXJ6KW70cVnhs7r270+Z2LBdDVux0KLupvw=
+  - secure: NmDguLC/wNWCkgab+ssmGuM/+oTZUeihXgNp35/ESIZtSpBsCT1n4FvTnMoukB4lTrD8DMl1y4N5DQkyF9N/j3TnU9nqSFzvUIS0K0GXepLCf9ULj4Vtj1YIjOnTss3J2l8to5WMabhpGMFnGaF8nU84+1domsYYGAo7WbKC3zo=
