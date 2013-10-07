@@ -4,11 +4,11 @@ organization := "net.elehack.argparse4s"
 
 organizationName := "Michael Ekstrand"
 
-version := "0.2.2-SNAPSHOT"
+version := "0.2.2"
 
 scalaVersion := "2.9.2"
 
-crossScalaVersions := Seq("2.10.0")
+crossScalaVersions := Seq("2.10.2")
 
 crossScalaVersions ++= Seq("2.9.3", "2.9.2", "2.9.1", "2.9.1-1", "2.9.0-1")
 
