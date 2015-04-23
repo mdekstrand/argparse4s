@@ -23,6 +23,7 @@ package net.elehack.argparse4s
 
 import net.sourceforge.argparse4j.ArgumentParsers
 import net.sourceforge.argparse4j.inf.ArgumentParser
+import net.sourceforge.argparse4j.internal.HelpScreenException
 
 /**
  * Base trait for commands. The argparse4s library is built around
@@ -54,8 +55,13 @@ with OptionType.Implicits {
    */
   def run(args: Seq[String]) {
     val p = parser
-    val ns = p.parseArgs(args.toArray)
-    implicit val exc = ExecutionContext(ns)
-    run()
+    try {
+      val ns = p.parseArgs(args.toArray)
+      implicit val exc = ExecutionContext(ns)
+      run()
+    }
+    catch {
+      case e: HelpScreenException => return
+    }
   }
 }
