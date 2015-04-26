@@ -1,8 +1,7 @@
 language: scala
 scala:
-- 2.9.2
-- 2.9.3
-- 2.10.2
+- 2.10.5
+- 2.11.6
 script: sbt publish
 env:
   global:
