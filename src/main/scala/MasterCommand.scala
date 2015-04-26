@@ -38,9 +38,7 @@ extends Command {
    * Get the subcommand, if one is provided.
    */
   def subcommand(implicit exc: ExecutionContext): Option[Subcommand] = {
-    Option(exc.namespace.get(MasterCommand.subcommandDest)) map {
-      _.asInstanceOf[Subcommand]
-    }
+    Option(exc.namespace.get[Subcommand](MasterCommand.subcommandDest))
   }
 
   /**
