@@ -4,6 +4,10 @@ module.
 
 [argparse4j]: http://argparse4j.sourceforge.net
 
+# Project Status
+
+I (Michael Ekstrand) am not actively using or maintaining this project.  Happy to turn it over to anyone interested in carrying it forward.
+
 # Using argparse4s
 
 First, add argparse4s to your project dependencies. In SBT:
